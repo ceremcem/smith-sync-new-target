@@ -4,6 +4,13 @@ _sdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 set -eu
 
 source $_sdir/config/config.sh
+cd $_sdir
+
+actual_root_mntpoint=$(./get_root_mntpoint.sh)
+if [[ $actual_root_mntpoint == $root_mnt ]]; then 
+    echo "This disk seems to be the active one. Using targets/rootfs instead. Exiting."
+    exit 1
+fi
 
 hd="$lvm_name"
 
@@ -78,7 +85,6 @@ if $ignore_kill_signal; then
 fi
 trap 'enable_cca_suspend' EXIT
 
-cd $_sdir
 if sudo -u $SUDO_USER vboxmanage showvminfo "$hd-testing" | grep -q "running (since"; then
     notify-send -u critical "Not backing up $hd" "$hd-testing is running."
     exit 1

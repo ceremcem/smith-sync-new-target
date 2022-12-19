@@ -14,13 +14,18 @@ cd "$_sdir"
 source "config/config.sh"
 btrbk_conf="config/btrbk.conf"
 
-echo "Detected root mnt point: $(get_root_mntpoint)"
+actual_root_mntpoint=$(./get_root_mntpoint.sh)
+if [[ $actual_root_mntpoint == $root_mnt ]]; then 
+    echo "This disk seems to be the active one. Using targets/rootfs instead. Exiting."
+    exit 1
+fi
+echo "Detected root mnt point: $actual_root_mntpoint"
 
 # Clear old output
 rm "$btrbk_conf" "$btrbk_conf.calculated" || true
 
 cat "${btrbk_conf}.template" \
-    | sed -e "s|{{actual_rootfs_mountpoint}}|$(get_root_mntpoint)|" \
+    | sed -e "s|{{actual_rootfs_mountpoint}}|$actual_root_mntpoint|" \
     | sed -e "s|{{root_mnt}}|$root_mnt|" \
     | sed -e "s|{{lvm_name}}|$lvm_name|" \
      > $btrbk_conf
