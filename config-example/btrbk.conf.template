@@ -1,0 +1,15 @@
+timestamp_format        long
+snapshot_create         no
+incremental             strict
+
+target_preserve_min     5h
+target_preserve         3d 2w
+
+lockfile                /var/lock/{{lvm_name}}-btrbk.lock
+
+snapshot_dir            snapshots/erik3
+
+volume {{actual_rootfs_mountpoint}}
+  target {{root_mnt}}/snapshots/erik3
+  subvolume rootfs
+
