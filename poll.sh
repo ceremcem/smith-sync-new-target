@@ -5,12 +5,11 @@
 #   $ sudo -s
 #   # source $(basename $0)
 #
-
 _sdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [[ $(whoami) = "root" ]] || { sudo $0 "$@"; exit 0; }
 cd $_sdir
-hd="$lvm_name"
 source ./config/config.sh
+hd="$lvm_name"
 dev="/dev/disk/by-id/$wwn"
 
 trap './detach.sh' EXIT
@@ -24,13 +23,14 @@ while :; do
     _timeout=10
     ans=$(zenity --timeout $_timeout --question --text \
         "Backup to $hd? \n(timeout: ${_timeout}s)" \
-        --ok-label="Do nothing" --extra-button "Scrub" --cancel-label="Backup*" --extra-button "Test (VM)" --width 200;)
+        --ok-label="Do nothing" --extra-button "Scrub" --cancel-label="Backup*" --extra-button "Test in VM" --width 200;)
     rc=$?
     if [[ "$ans" == "Scrub" ]]; then
         ./scrub.sh --dialog
         ./detach.sh
-    elif [[ "$ans" == "Test (VM)" ]]; then
-    	sudo -u $SUDO_USER ./test-in-virtualbox.sh
+    elif [[ "$ans" == "Test in VM" ]]; then
+    	./test-in-virtualbox.sh
+        echo "Done. Waiting for disk to detach."
     elif [[ $rc -eq 0 ]]; then
         notify-send "Doing nothing."
         echo "Doing nothing due to user selection."

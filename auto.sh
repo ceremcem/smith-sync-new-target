@@ -3,6 +3,32 @@ _sdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [[ $(whoami) = "root" ]] || { sudo $0 "$@"; exit 0; }
 set -eu
 
+source $_sdir/config/config.sh
+
+hd="$lvm_name"
+
+do_detach(){
+    ./detach.sh
+    notify-send -u critical "$hd is unmounted."
+}
+
+suspend_lock_file=/tmp/cca-suspend.defer.$hd
+disable_cca_suspend(){
+    if $defer_cca_suspend; then
+        msg="* INFO: Disabled cca-suspend."
+        echo "$msg"; notify-send -u critical "$msg"
+        touch $suspend_lock_file
+    fi
+}
+
+enable_cca_suspend(){
+    if $defer_cca_suspend; then
+        msg="* INFO: Enabled cca-suspend."
+        echo "$msg"; notify-send -u critical "$msg"
+        [[ -f $suspend_lock_file ]] && rm $suspend_lock_file
+    fi
+}
+
 # Print generated config
 while read key value; do
     case $key in
@@ -18,9 +44,14 @@ target_snapshots="$target"
 echo "source: $source_snapshots"
 echo "target: $target_snapshots"
 
-source $_sdir/config/config.sh
+disable_cca_suspend
 
-hd="$lvm_name"
+t0=$EPOCHSECONDS
+
+if $take_new_snapshot_before_backup; then 
+    notify-send "Taking a new rootfs snapshot"
+    ../rootfs/take-snapshot.sh
+fi
 
 tflag="/tmp/take-snapshot.last-run.txt" # timestamp file
 _flag="/tmp/$hd-auto.last-run.txt"
@@ -42,7 +73,10 @@ on_kill(){
 }
 
 # ignore those signals:
-trap -- on_kill SIGTERM SIGHUP SIGINT
+if $ignore_kill_signal; then 
+    trap -- on_kill SIGTERM SIGHUP SIGINT
+fi
+trap 'enable_cca_suspend' EXIT
 
 cd $_sdir
 if sudo -u $SUDO_USER vboxmanage showvminfo "$hd-testing" | grep -q "running (since"; then
@@ -58,6 +92,7 @@ mkdir -p "$target_snapshots"
 notify-send "Transferring data to $hd."
 if ! time ./backup.sh; then
     notify-send -u critical "ERROR: $hd backup" "Something went wrong. Check console."
+    do_detach
     exit 1
 fi
 
@@ -66,11 +101,21 @@ echo "Backup is successful."
 ../../smith-sync/mark-not-delete-latest.sh $hd ../rootfs/exclude $target_snapshots
 
 echo "Assembling the bootable subvolume on target:"
-./assemble-bootable.sh --refresh --full
-#./$hd-detach.sh
-t1=$EPOCHSECONDS
-notify-send "Backup of $hd has been completed." \
-    "Took `date -d@$(($t1 - $t0)) -u +%H:%M:%S` seconds. INFO: $hd is left attached."
+if ! ./assemble-bootable.sh --refresh --full; then
+    echo
+    echo "-------------------------------------------------------"
+    echo "Something went wrong while assembling the bootable copy."
+    echo "$hd is left attached. Please manually handle the problem."
+    echo "-------------------------------------------------------"
+    echo
+    notify-send -u critical "ERROR: $hd backup" "Something went wrong. Check console."
+    exit 2
+fi
 
 echo $EPOCHSECONDS > $_flag
 
+t1=$EPOCHSECONDS
+duration=`date -d@$(($t1 - $t0)) -u +%H:%M:%S`
+echo "$hd data transfer completed." "Duration: ${duration}."
+
+$detach_after_backup && do_detach # visual notification is displayed within the function

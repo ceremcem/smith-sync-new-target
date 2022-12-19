@@ -31,6 +31,12 @@ crypt_key="$(cat $_script_dir/keypath)"
 # OPTIONAL: Mount options for attach script:
 #mount_opts="rw,noatime,compress=lzo,ssd,discard,space_cache,inode_cache"
 
+# Backup behavior
+detach_after_backup=true
+defer_cca_suspend=true
+ignore_kill_signal=false
+take_new_snapshot_before_backup=true
+
 # you probably won't need to change those:
 crypt_dev_name=${lvm_name}_crypt
 root_lvm=${lvm_name}-root
