@@ -9,7 +9,7 @@ get_root_mntpoint(){
 
 cd "$_sdir"
 [[ -d config ]] || { echo "Create ./config directory first."; exit 1; }
-[[ -d config/config.sh ]] || { echo "Create ./config/config.sh file first."; exit 1; }
+[[ -f config/config.sh ]] || { echo "Create ./config/config.sh file first."; exit 1; }
 
 source "config/config.sh"
 btrbk_conf="config/btrbk.conf"
@@ -17,7 +17,7 @@ btrbk_conf="config/btrbk.conf"
 echo "Detected root mnt point: $(get_root_mntpoint)"
 
 # Clear old output
-rm "$btrbk_conf" "$btrbk_conf.calculated"
+rm "$btrbk_conf" "$btrbk_conf.calculated" || true
 
 cat "${btrbk_conf}.template" \
     | sed -e "s|{{actual_rootfs_mountpoint}}|$(get_root_mntpoint)|" \
