@@ -6,12 +6,7 @@ tools="../../smith-sync"
 [[ $(whoami) = "root" ]] || exec sudo "$0" "$@"
 
 cd $_sdir
-source "config/config.sh"
-actual_root_mntpoint=$(./get_root_mntpoint.sh)
-if [[ $actual_root_mntpoint == $root_mnt ]]; then 
-    echo "This disk seems to be the active one. Using targets/rootfs instead. Exiting."
-    exit 1
-fi
+./check-if-active-disk.sh || exit 1
 
 echo "Calculating the btrbk configuration file"
 ./update-btrbk-conf.sh

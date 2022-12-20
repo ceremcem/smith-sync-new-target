@@ -2,6 +2,8 @@
 _sdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 set -eu
 
+btrbk_conf="config/btrbk.conf"
+
 get_root_mntpoint(){
     # returns the mountpoint where the root subvolume mounted which holds the actual rootfs.
     mount | grep $(cat /etc/fstab | awk '$2 == "/" {print $1}') | grep "\bsubvolid=5\b" | awk '{print $3}'
@@ -10,15 +12,12 @@ get_root_mntpoint(){
 cd "$_sdir"
 [[ -d config ]] || { echo "Create ./config directory first."; exit 1; }
 [[ -f config/config.sh ]] || { echo "Create ./config/config.sh file first."; exit 1; }
+[[ -f "${btrbk_conf}.template" ]] || { echo "Create ${btrbk_conf}.template file first."; exit 1; }
 
 source "config/config.sh"
-btrbk_conf="config/btrbk.conf"
 
-actual_root_mntpoint=$(./get_root_mntpoint.sh)
-if [[ $actual_root_mntpoint == $root_mnt ]]; then 
-    echo "This disk seems to be the active one. Using targets/rootfs instead. Exiting."
-    exit 1
-fi
+./check-if-active-disk.sh || exit 1
+
 echo "Detected root mnt point: $actual_root_mntpoint"
 
 # Clear old output

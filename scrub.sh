@@ -1,7 +1,7 @@
 #!/bin/bash
 _sdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-[[ $(whoami) = "root" ]] || { sudo $0 "$@"; exit 0; }
+[[ $(whoami) = "root" ]] || exec sudo "$0" "$@"
 
 . $_sdir/config.sh
 
