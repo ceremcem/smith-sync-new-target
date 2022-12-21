@@ -11,4 +11,5 @@ sudo ../../smith-sync/assemble-bootable-system.sh \
     -c ./config/config.sh \
     --boot-backup boot.backup \
     --install-grub \
-    --dont-touch-rootfs
+    --dont-touch-rootfs \
+    --force-grub-install
