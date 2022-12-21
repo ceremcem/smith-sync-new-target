@@ -32,6 +32,7 @@ enable_cca_suspend(){
 }
 
 # Print generated config
+./update-btrbk-conf.sh
 while read key value; do
     case $key in
         snapshot_dir|volume|subvolume|target)
