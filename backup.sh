@@ -9,7 +9,7 @@ cd $_sdir
 ./check-if-active-disk.sh || exit 1
 
 echo "Calculating the btrbk configuration file"
-./update-btrbk-conf.sh
+./update-btrbk-conf.sh || exit 2
 
 conf="config/btrbk.conf"
 logs_dir="$_sdir/logs"

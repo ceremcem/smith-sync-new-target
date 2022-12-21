@@ -4,11 +4,6 @@ set -eu
 
 btrbk_conf="config/btrbk.conf"
 
-get_root_mntpoint(){
-    # returns the mountpoint where the root subvolume mounted which holds the actual rootfs.
-    mount | grep $(cat /etc/fstab | awk '$2 == "/" {print $1}') | grep "\bsubvolid=5\b" | awk '{print $3}'
-}
-
 cd "$_sdir"
 [[ -d config ]] || { echo "Create ./config directory first."; exit 1; }
 [[ -f config/config.sh ]] || { echo "Create ./config/config.sh file first."; exit 1; }
@@ -18,6 +13,7 @@ source "config/config.sh"
 
 ./check-if-active-disk.sh || exit 1
 
+actual_root_mntpoint=$(./get_root_mntpoint.sh)
 echo "Detected root mnt point: $actual_root_mntpoint"
 
 # Clear old output
