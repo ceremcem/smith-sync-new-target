@@ -5,6 +5,7 @@ set -eu -o pipefail
 
 cd $_sdir
 ./check-if-active-disk.sh || exit 1
+source ./config/config.sh
 
 ./detach.sh || true
 sudo -u $SUDO_USER VBoxManage startvm "$lvm_name-testing"
