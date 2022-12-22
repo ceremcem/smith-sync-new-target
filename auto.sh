@@ -82,7 +82,7 @@ fi
 trap 'enable_cca_suspend' EXIT
 
 if sudo -u $SUDO_USER vboxmanage showvminfo "$hd-testing" | grep -q "running (since"; then
-    notify-send -u critical "Not backing up $hd" "$hd-testing is running."
+    echo "Not backing up $hd" "$hd-testing is running."
     exit 1
 fi
 notify-send "Backing up to $hd."
