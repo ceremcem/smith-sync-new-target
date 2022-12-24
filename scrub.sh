@@ -1,76 +1,64 @@
 #!/bin/bash
 _sdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-
+set -eu
 [[ $(whoami) = "root" ]] || exec sudo "$0" "$@"
 
-. $_sdir/config.sh
+. $_sdir/config/config.sh
 
-export TOP_PID=$$
+SCRUB=../../scrub/scrub-mounted.sh
 
-flag="/tmp/${TOP_PID}_should_run.txt"
+show_help(){
+    cat <<HELP
 
-# set the flag file
-echo "true" > $flag
+    Starts scrubbing $root_dev
 
-scrub_status(){
-    btrfs scrub status "$root_mnt" | grep Status | awk '{print $2}'
+    $(basename $0)
+
+HELP
 }
+
+
+# Parse command line arguments
+# ---------------------------
+# Initialize parameters
+# ---------------------------
+args_backup=("$@")
+args=()
+_count=1
+while [ $# -gt 0 ]; do
+    key="${1:-}"
+    case $key in
+        -h|-\?|--help|'')
+            show_help    # Display a usage synopsis.
+            exit
+            ;;
+        # --------------------------------------------------------
+        # --------------------------------------------------------
+        -*) # Handle unrecognized options
+            help_die "Unknown option: $1"
+            ;;
+        *)  # Generate the new positional arguments: $arg1, $arg2, ... and ${args[@]}
+            if [[ ! -z ${1:-} ]]; then
+                declare arg$((_count++))="$1"
+                args+=("$1")
+            fi
+            ;;
+    esac
+    [[ -z ${1:-} ]] && break || shift
+done; set -- "${args_backup[@]}"
+# Use $arg1 in place of $1, $arg2 in place of $2 and so on, 
+# "$@" is in the original state,
+# use ${args[@]} for new positional arguments  
 
 cleanup(){
-    rm $flag 2> /dev/null
-    echo "Cancelling scrub on $root_mnt"
-    if [[ "$(scrub_status)" == "running" ]]; then
-        btrfs scrub cancel "$root_mnt"
-    fi
-    out=$_sdir/scrub-statuses
-    mkdir -p $out
-    outfile=$out/$(date +"%Y%m%dT%H%M")-$(scrub_status).txt
-    echo "Last scrub status is written to $outfile"
-    btrfs scrub status "$root_mnt" > $outfile
+    btrfs scrub cancel $root_dev
+    echo "Cancelled scrub on $root_dev"
+    exit 0
 }
 
-trap cleanup EXIT SIGTERM
+trap cleanup SIGINT
 
-$_sdir/attach.sh
-
-watch_scrub(){
-    while [[ -f $flag ]]; do
-        if [[ "$(scrub_status)" != "running" ]]; then
-            btrfs scrub resume "$root_mnt"
-        fi
-        sleep 10
-    done
-}
-
-watch_stop(){
-    if [[ "${1:-}" == "--dialog" ]]; then
-        zenity --info --text "Stop scrubbing ${lvm_name}?" --width=200
-        kill -TERM $TOP_PID
-    fi
-}
-
-watch_progress(){
-    while [[ -f $flag ]]; do
-        clear
-        echo "Scrub status for $lvm_name (flag: $flag)"
-        echo "--------------------------"
-        btrfs scrub status $root_mnt
-        echo "--------------------------"
-        sleep 2
-    done
-}
-
-watch_finish(){
-    while [[ -f $flag ]]; do
-        sleep 2
-        if [[ "$(scrub_status)" == "finished" ]]; then
-            echo "Finished scrubbing."
-            kill -TERM $TOP_PID
-        fi
-    done
-}
-
-watch_scrub &
-watch_stop "${1:-}" &
-watch_finish &
-watch_progress
+$SCRUB --mark $root_dev
+$SCRUB 2&>1 > /dev/null &
+watch btrfs scrub status -d $root_dev
+wait
