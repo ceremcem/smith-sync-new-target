@@ -28,8 +28,8 @@ crypt_part='UUID=357ef4cc-c6a2-4626-bbe9-52e1a99e3e84'
 # OPTIONAL: Define your crypt_key path:
 crypt_key="$(cat $_script_dir/keypath)"
 
-# OPTIONAL: Mount options for attach script:
-#mount_opts="rw,noatime,compress=lzo,ssd,discard,space_cache,inode_cache"
+# Mount options for attach script and boot configuration generation:
+mount_opts="rw,noatime"
 
 # Backup behavior
 detach_after_backup=true
