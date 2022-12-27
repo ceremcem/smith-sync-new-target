@@ -41,7 +41,7 @@ while :; do
         message="Started plug-n-backup for $hd"
         [[ $rc -eq 5 ]] && notify-send -u critical "$message" "`date`"
         echo "`date`: $message"
-        ./auto.sh
+        ./auto.sh --force
         echo "---------------------------------"
         t1=$EPOCHSECONDS
         duration=`date -d@$(($t1 - $t0)) -u +%H:%M:%S`
