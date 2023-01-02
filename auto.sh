@@ -38,7 +38,7 @@ _flag="/tmp/$hd-auto.last-run.txt"
 [[ -f $tflag ]] || echo 0 > $tflag
 [[ -f $_flag ]] || echo 0 > $_flag
 if [[ "$(cat $_flag)" -lt "$(cat $tflag)" ]]; then
-    notify-send "${hd}'s last run is stale."
+    echo "${hd}'s last run is stale, backing up."
 else
     echo "Not running ${hd} backup as it should be already backed up."
     exit 0
