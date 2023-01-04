@@ -8,5 +8,5 @@ cd $_sdir
 source ./config/config.sh
 
 ./detach.sh || true
-sudo -u $SUDO_USER VBoxManage startvm "$lvm_name-testing"
+sudo -u $SUDO_USER VBoxManage startvm "$test_vm_name"
 

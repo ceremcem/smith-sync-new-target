@@ -37,6 +37,9 @@ defer_cca_suspend=true
 ignore_kill_signal=false
 take_new_snapshot_before_backup=true
 
+# VirtualBox machine name for testing
+test_vm_name="${lvm_name}-testing"
+
 # you probably won't need to change those:
 crypt_dev_name=${lvm_name}_crypt
 root_lvm=${lvm_name}-root
