@@ -1,6 +1,6 @@
 timestamp_format        long
 snapshot_create         no
-incremental             strict
+#incremental             strict
 
 target_preserve_min     5h
 target_preserve         3d 2w

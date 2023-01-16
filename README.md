@@ -1,18 +1,21 @@
 # Change while creating a new target: 
 
-1. Create config/config.sh
-2. Create config/btrbk.conf
-3. Modify config/config.sh till the `format-btrfs-swap-lvm-luks.sh` step.
-4. Disable "incremental strict" directive for the first time
-5. Run ./auto.sh
+1. cp -a ./config{-example,}
+2. Modify config/config.sh till the `format-btrfs-swap-lvm-luks.sh` step.
+3. Run ./auto.sh
 
 
-# If this is an external hard disk
+## If this is an external hard disk
 
 Start plug-and-backup service by:
 
 `./poll.sh`
 
+## If this is an internal hard disk
+
+Start periodic backups by: 
+
+`./poll-attached.sh`
 
 # Testing the backup 
 
