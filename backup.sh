@@ -17,6 +17,9 @@ mkdir -p $logs_dir
 tf="$logs_dir/$(date +'%Y%m%dT%H%M').log"
 echo "Starting backup process..."
 $tools/btrbk -c $conf.calculated clean
+$tools/btrbk -c $conf.calculated dryrun | grep '[*][*][*] /' | while read -r out; do
+    notify-send -u critical "NON-INCREMENTAL BACKUP WARNING ($(basename $_sdir))" "$out"
+done
 $tools/btrbk -c $conf.calculated --progress -v ${1:-run} | tee $tf
 [[ $? -eq 0 ]] || exit $?
 grep '^!!!' -q $tf && exit 1
