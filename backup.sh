@@ -24,5 +24,12 @@ $tools/btrbk -c $conf.calculated --progress -v ${1:-run} | tee $tf
 [[ $? -eq 0 ]] || exit $?
 grep '^!!!' -q $tf && exit 1
 
+# Check again if there is non-incremental backup warning (there shouldn't be)
+$tools/btrbk -c $conf.calculated dryrun | grep '[*][*][*] /' | while read -r out; do
+    notify-send -u critical "Something wrong in ($(basename $_sdir))" "There can not be a NON-INCREMENTAL BACKUP after a successful backup."
+    exit 1
+done
+
+
 echo "Backup is successful"
 exit 0

@@ -44,6 +44,9 @@ else
     exit 0
 fi
 
+[[ "${1:-}" == "--prevent-suspend" ]] && defer_cca_suspend=true
+
+
 # Print generated config
 ./update-btrbk-conf.sh
 while read key value; do
@@ -82,10 +85,10 @@ if $ignore_kill_signal; then
 fi
 trap 'enable_cca_suspend' EXIT
 
-if sudo -u $SUDO_USER vboxmanage showvminfo "$hd-testing" | grep -q "running (since"; then
-    echo "Not backing up $hd" "$hd-testing is running."
-    exit 1
-fi
+#if sudo -u $SUDO_USER vboxmanage showvminfo "$hd-testing"  | grep -q "running (since"; then
+#    echo "Not backing up $hd" "$hd-testing is running."
+#    exit 1
+#fi
 notify-send "Backing up to $hd."
 t0=$EPOCHSECONDS
 ./attach.sh
