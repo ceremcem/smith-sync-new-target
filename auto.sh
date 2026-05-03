@@ -91,7 +91,7 @@ trap 'enable_cca_suspend' EXIT
 #fi
 notify-send "Backing up to $hd."
 t0=$EPOCHSECONDS
-./attach.sh
+./attach.sh || exit 1
 
 mkdir -p "$target_snapshots"
 
