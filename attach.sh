@@ -10,5 +10,5 @@ cd $_sdir
 s=0
 while sleep $s; do
     s=3
-    ../../smith-sync/multistrap-helpers/install-to-disk/attach-disk.sh config/config.sh && break
+    ../../smith-sync/multistrap-helpers/install-to-disk/attach-disk.sh config/config.sh && break || exit 2
 done
