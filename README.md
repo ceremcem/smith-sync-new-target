@@ -24,7 +24,8 @@ Start periodic backups by:
 
 # Reformat partitions and restart the backup
 
-1. `../../smith-sync/multistrap-helpers/install-to-disk/format-btrfs-swap-lvm-luks.sh --use-existing-partitions ./config/config.sh`
-2. Reassign `UUID=...` (see config file comments)
-3. Reassign LUKS key (`assign-key-to-luks.sh`)
-4. `./poll-attached.sh` # or `./auto` 
+1. `./detach.sh`
+2. `../../smith-sync/multistrap-helpers/install-to-disk/format-btrfs-swap-lvm-luks.sh --use-existing-partitions ./config/config.sh`
+3. Reassign `UUID=...` (see config file comments)
+4. Reassign LUKS key (`../../smith-sync/multistrap-helpers/install-to-disk/assign-key-to-luks.sh ./config/config.sh`)
+5. `./poll-attached.sh` # or `./auto` 
