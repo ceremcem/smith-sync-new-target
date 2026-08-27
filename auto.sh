@@ -19,7 +19,7 @@ disable_cca_suspend(){
     if $defer_cca_suspend; then
         msg="* INFO: Disabled cca-suspend."
         echo "$msg"; notify-send -u critical "$msg"
-        touch $suspend_lock_file
+        echo $$ > $suspend_lock_file
     fi
 }
 
