@@ -100,6 +100,9 @@ t0=$EPOCHSECONDS
 
 mkdir -p "$target_snapshots"
 
+# Mark current snapshots not to delete 
+../../smith-sync/mark-not-delete-latest.sh ${hd}.progress ../rootfs/exclude $target_snapshots
+
 notify-send "Transferring data to $hd."
 if ! time ./backup.sh; then
     notify-send -u critical "ERROR: $hd backup" "Something went wrong. Check console."
@@ -110,6 +113,7 @@ fi
 # Backup is successful, keep the latest snapshot
 echo "Backup is successful."
 ../../smith-sync/mark-not-delete-latest.sh $hd ../rootfs/exclude $target_snapshots
+rm ../rootfs/exclude/${hd}.progress
 
 echo "Assembling the bootable subvolume on target:"
 if ! ./assemble-bootable.sh --refresh --full; then
