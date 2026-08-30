@@ -68,8 +68,13 @@ disable_cca_suspend
 t0=$EPOCHSECONDS
 
 if $take_new_snapshot_before_backup; then 
-    notify-send "Taking a new rootfs snapshot"
-    ../rootfs/take-snapshot.sh
+    last_run=$(cat $tflag)
+    if (( last_run + ${max_snapshot_drift:=0} < EPOCHSECONDS )); then
+        notify-send "Taking a new rootfs snapshot"
+        ../rootfs/take-snapshot.sh
+    else
+        notify-send "Last rootfs snapshots are fresh enough" "$(( (EPOCHSECONDS - last_run) / 3600 )) hour ago"
+    fi
 fi
 
 
