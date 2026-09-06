@@ -3,6 +3,17 @@ _sdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 [[ $(whoami) = "root" ]] || exec sudo "$0" "$@"
 set -eu
 
+add_exit_trap() {
+    local new_cmd=$1
+    local existing
+    existing=$(trap -p EXIT | sed -E "s/^trap -- '(.*)' EXIT$/\1/")
+    if [[ -n "$existing" ]]; then
+        trap "${existing}; ${new_cmd}" EXIT
+    else
+        trap "${new_cmd}" EXIT
+    fi
+}
+
 source $_sdir/config/config.sh
 cd $_sdir
 ./check-if-active-disk.sh || exit 1
@@ -11,6 +22,7 @@ hd="$lvm_name"
 
 do_detach(){
     ./detach.sh
+    sleep 3 # to preserve correct info order
     notify-send -u critical "$hd is unmounted."
 }
 
@@ -69,11 +81,11 @@ t0=$EPOCHSECONDS
 
 if $take_new_snapshot_before_backup; then 
     last_run=$(cat $tflag)
-    if (( last_run + ${max_snapshot_drift:=0} < EPOCHSECONDS )); then
-        notify-send "Taking a new rootfs snapshot"
+    if (( last_run + ((${max_snapshot_drift:=0} * 60)) < EPOCHSECONDS )); then
+        notify-send "Taking a new rootfs snapshot" "Max snapshot drift is $max_snapshot_drift mins"
         ../rootfs/take-snapshot.sh
     else
-        notify-send "Last rootfs snapshots are fresh enough" "$(( (EPOCHSECONDS - last_run) / 3600 )) hour ago"
+        notify-send "Last rootfs snapshots are fresh enough" "$(( (EPOCHSECONDS - last_run) / 60 )) mins ago (< $max_snapshot_drift mins)"
     fi
 fi
 
@@ -88,7 +100,7 @@ on_kill(){
 if $ignore_kill_signal; then 
     trap -- on_kill SIGTERM SIGHUP SIGINT
 fi
-trap 'enable_cca_suspend' EXIT
+add_exit_trap 'enable_cca_suspend'
 
 #if sudo -u $SUDO_USER vboxmanage showvminfo "$hd-testing"  | grep -q "running (since"; then
 #    echo "Not backing up $hd" "$hd-testing is running."
@@ -100,8 +112,30 @@ t0=$EPOCHSECONDS
 
 mkdir -p "$target_snapshots"
 
-# Mark current snapshots not to delete 
-../../smith-sync/mark-not-delete-latest.sh ${hd}.progress ../rootfs/exclude $target_snapshots
+mark_progress_timestamp(){
+    i=0
+    while read -r progress_ts; do
+        #notify-send  "Marking $hd progress" "Progress timestamp: $progress_ts (no: $i)"
+        echo "Marking progress timestamp: $progress_ts (no: $i)"
+        echo $progress_ts > ../rootfs/exclude/${hd}.progress.$i
+        i=$((i+1))
+    done <<< $(btrfs-ls --rw "$target_snapshots" \
+        | grep -oE -- '[0-9]{8}T[0-9]{4}_?[0-9]?' \
+        | sort -n)
+}
+watch_mark_progress_timestamp(){
+    while :; do
+        mark_progress_timestamp
+        sleep 10
+    done
+}
+
+watch_mark_progress_timestamp &
+PROGRESS_KEEPALIVE_PID=$!
+stop_progress_watcher(){
+    kill "${PROGRESS_KEEPALIVE_PID:-}" &>/dev/null || true
+}
+add_exit_trap stop_progress_watcher 
 
 notify-send "Transferring data to $hd."
 if ! time ./backup.sh; then
@@ -113,7 +147,12 @@ fi
 # Backup is successful, keep the latest snapshot
 echo "Backup is successful."
 ../../smith-sync/mark-not-delete-latest.sh $hd ../rootfs/exclude $target_snapshots
-rm ../rootfs/exclude/${hd}.progress
+stop_progress_watcher
+rm ../rootfs/exclude/${hd}.progress* || true
+while read -r sub; do
+    [[ -z $sub ]] && continue
+    btrfs sub del $sub
+done <<< $(btrfs-ls --rw "$target_snapshots")
 
 echo "Assembling the bootable subvolume on target:"
 if ! ./assemble-bootable.sh --refresh --full; then
