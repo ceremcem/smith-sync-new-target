@@ -170,6 +170,9 @@ echo $EPOCHSECONDS > $_flag
 
 t1=$EPOCHSECONDS
 duration=`date -d@$(($t1 - $t0)) -u +%H:%M:%S`
-echo "$hd data transfer completed." "Duration: ${duration}."
 
 $detach_after_backup && do_detach # visual notification is displayed within the function
+
+echo "$hd data transfer completed." "Duration: ${duration}."
+
+exit 0
