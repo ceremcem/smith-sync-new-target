@@ -47,7 +47,7 @@ tflag="/tmp/take-snapshot.last-run.txt" # timestamp file
 _flag="/tmp/$hd-auto.last-run.txt"
 
 [[ "${1:-}" == "--force" ]] && echo "-1" > $_flag
-[[ -f $tflag ]] || echo 0 > $tflag
+[[ -f $tflag ]] || echo 1 > $tflag
 [[ -f $_flag ]] || echo 0 > $_flag
 if [[ "$(cat $_flag)" -lt "$(cat $tflag)" ]]; then
     echo "${hd}'s last run is stale, backing up."
