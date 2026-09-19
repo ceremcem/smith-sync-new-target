@@ -6,6 +6,7 @@ cd $_sdir
 
 period=0
 while sleep $period; do
-    ./auto.sh
+    ./auto.sh || break
     period="1m"
 done
+echo "Stopped polling"
