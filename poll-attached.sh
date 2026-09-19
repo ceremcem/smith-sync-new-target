@@ -4,7 +4,7 @@ set -u
 [[ $(whoami) = "root" ]] || exec sudo "$0" "$@"
 cd $_sdir
 
-period=0
+period=${1:-0}
 while sleep $period; do
     ./auto.sh || break
     period="1m"
