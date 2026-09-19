@@ -36,6 +36,7 @@ detach_after_backup=true
 defer_cca_suspend=true
 ignore_kill_signal=false
 take_new_snapshot_before_backup=true
+max_snapshot_drift=$((12 * 60)) # 12h
 
 # VirtualBox machine name for testing
 test_vm_name="${lvm_name}-testing"
