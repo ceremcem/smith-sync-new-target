@@ -20,10 +20,14 @@ cd $_sdir
 
 hd="$lvm_name"
 
+echolog(){
+    echo "$1 ${2:-}"
+    notify-send -u critical "$1" "${2:-}"
+}
+
 do_detach(){
     ./detach.sh
-    sleep 3 # to preserve correct info order
-    notify-send -u critical "$hd is unmounted."
+    echolog "$hd is unmounted."
 }
 
 suspend_lock_file=/tmp/cca-suspend.defer.$hd
@@ -171,8 +175,8 @@ echo $EPOCHSECONDS > $_flag
 t1=$EPOCHSECONDS
 duration=`date -d@$(($t1 - $t0)) -u +%H:%M:%S`
 
-$detach_after_backup && do_detach # visual notification is displayed within the function
+echolog "$hd data transfer completed." "Duration: ${duration}."
 
-echo "$hd data transfer completed." "Duration: ${duration}."
+$detach_after_backup && do_detach # visual notification is displayed within the function
 
 exit 0

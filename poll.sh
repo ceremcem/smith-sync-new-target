@@ -37,18 +37,12 @@ while :; do
         notify-send "Doing nothing."
         echo "Doing nothing due to user selection."
     else
-        t0=$EPOCHSECONDS
         message="Started plug-n-backup for $hd"
         [[ $rc -eq 5 ]] && notify-send -u critical "$message" "`date`"
         echo "`date`: $message"
         ./auto.sh --force
         echo "---------------------------------"
-        t1=$EPOCHSECONDS
-        duration=`date -d@$(($t1 - $t0)) -u +%H:%M:%S`
-
-        echo "Backup of $hd has been completed in $duration."
-        notify-send -u critical "Backup of $hd has been completed" \
-            "Duration: $duration"
+        notify-send -u critical "$hd can now be safely unplugged"
     fi
 
     # Wait for disk to detach
