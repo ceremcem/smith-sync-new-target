@@ -24,6 +24,10 @@ echolog(){
     echo "$1 ${2:-}"
     notify-send -u critical "$1" "${2:-}"
 }
+echoinfo(){
+    echo "$1 ${2:-}"
+    notify-send "$1" "${2:-}"
+}
 
 do_detach(){
     ./detach.sh
@@ -175,7 +179,7 @@ echo $EPOCHSECONDS > $_flag
 t1=$EPOCHSECONDS
 duration=`date -d@$(($t1 - $t0)) -u +%H:%M:%S`
 
-echolog "$hd data transfer completed." "Duration: ${duration}."
+echoinfo "$hd data transfer completed." "Duration: ${duration}."
 
 $detach_after_backup && do_detach # visual notification is displayed within the function
 
